@@ -131,19 +131,19 @@ add_filter('the_content', 'PutWtiLikePost');
 /**
  * Get already voted message
  * @param $post_id integer
- * @param $ip string
+ * @param $user_id integer
  * @return string
  */
-function GetWtiVotedMessage($post_id, $ip = null) {
+function GetWtiVotedMessage($post_id, $user_id = null) {
      global $wpdb;
      $wti_voted_message = '';
      $voting_period = get_option('wti_like_post_voting_period');
      
-     if (null == $ip) {
-          $ip = WtiGetRealIpAddress();
+     if (null == $user_id) {
+         $user_id = WtiGetUserId();
      }
      
-     $query = "SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND ip = '$ip'";
+     $query = "SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND user_id = '$user_id'";
      
      if ($voting_period != 0 && $voting_period != 'once') {
           // If there is restriction on revoting with voting period, check with voting time

@@ -242,42 +242,29 @@ if (is_admin()) {
 }
 
 /**
- * Get the actual ip address
+ * Get the user id
  * @param no-param
  * @return string
  */
-function WtiGetRealIpAddress() {
-	if (getenv('HTTP_CLIENT_IP')) {
-		$ip = getenv('HTTP_CLIENT_IP');
-	} elseif (getenv('HTTP_X_FORWARDED_FOR')) {
-		$ip = getenv('HTTP_X_FORWARDED_FOR');
-	} elseif (getenv('HTTP_X_FORWARDED')) {
-		$ip = getenv('HTTP_X_FORWARDED');
-	} elseif (getenv('HTTP_FORWARDED_FOR')) {
-		$ip = getenv('HTTP_FORWARDED_FOR');
-	} elseif (getenv('HTTP_FORWARDED')) {
-		$ip = getenv('HTTP_FORWARDED');
-	} else {
-		$ip = $_SERVER['REMOTE_ADDR'];
-	}
-	
-	return $ip;
+function WtiGetUserId() {
+    $current_user = wp_get_current_user();
+    return (int)$current_user->ID;
 }
 
 /**
  * Check whether user has already voted or not
  * @param $post_id integer
- * @param $ip string
+ * @param $user_id integer
  * @return integer
  */
-function HasWtiAlreadyVoted($post_id, $ip = null) {
+function HasWtiAlreadyVoted($post_id, $user_id = null) {
 	global $wpdb;
 	
-	if (null == $ip) {
-		$ip = WtiGetRealIpAddress();
+	if (null == $user_id) {
+        $user_id = WtiGetUserId();
 	}
 	
-	$wti_has_voted = $wpdb->get_var("SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND ip = '$ip'");
+	$wti_has_voted = $wpdb->get_var("SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND user_id = '$user_id'");
 	
 	return $wti_has_voted;
 }
@@ -285,17 +272,17 @@ function HasWtiAlreadyVoted($post_id, $ip = null) {
 /**
  * Get last voted date for a given post by ip
  * @param $post_id integer
- * @param $ip string
+ * @param $user_id integer
  * @return string
  */
-function GetWtiLastVotedDate($post_id, $ip = null) {
+function GetWtiLastVotedDate($post_id, $user_id = null) {
      global $wpdb;
      
-     if (null == $ip) {
-          $ip = WtiGetRealIpAddress();
+     if (null == $user_id) {
+         $user_id = WtiGetUserId();
      }
      
-     $wti_has_voted = $wpdb->get_var("SELECT date_time FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND ip = '$ip'");
+     $wti_has_voted = $wpdb->get_var("SELECT date_time FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND user_id = '$user_id'");
 
      return $wti_has_voted;
 }

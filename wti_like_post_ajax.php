@@ -5,7 +5,8 @@ function WtiLikePostProcessVote() {
 	// Get request data
 	$post_id = (int)$_REQUEST['post_id'];
 	$task = $_REQUEST['task'];
-	$ip = WtiGetRealIpAddress();
+    $current_user = wp_get_current_user();
+    $user_id = (int)$current_user->ID;
 	
 	// Check for valid access
 	if ( !wp_verify_nonce( $_REQUEST['nonce'], 'wti_like_post_vote_nonce' ) ) {
@@ -22,7 +23,7 @@ function WtiLikePostProcessVote() {
 			$error = 1;
 			$msg = get_option( 'wti_like_post_login_message' );
 		} else {
-			$has_already_voted = HasWtiAlreadyVoted( $post_id, $ip );
+			$has_already_voted = HasWtiAlreadyVoted( $post_id, $user_id );
 			$voting_period = get_option( 'wti_like_post_voting_period' );
 			$datetime_now = date( 'Y-m-d H:i:s' );
 			
@@ -39,7 +40,7 @@ function WtiLikePostProcessVote() {
 					$can_vote = true;
 				} else {
 					// Get the last date when the user had voted
-					$last_voted_date = GetWtiLastVotedDate( $post_id, $ip );
+					$last_voted_date = GetWtiLastVotedDate( $post_id, $user_id );
 					
 					// Get the bext voted date when user can vote
 					$next_vote_date = GetWtiNextVoteDate( $last_voted_date, $voting_period );
@@ -58,8 +59,6 @@ function WtiLikePostProcessVote() {
 		}
 		
 		if ( $can_vote ) {
-			$current_user = wp_get_current_user();
-			$user_id = (int)$current_user->ID;
 			
 			if ( $task == "like" ) {
 				if ( $has_already_voted ) {
@@ -67,13 +66,13 @@ function WtiLikePostProcessVote() {
 					$query .= "value = value + 1, ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "' ";
 					$query .= "WHERE post_id = '" . $post_id . "' AND ";
-					$query .= "ip = '$ip'";
+                    $query .= "user_id = '$user_id'";
 				} else {			
 					$query = "INSERT INTO {$wpdb->prefix}wti_like_post SET ";
 					$query .= "post_id = '" . $post_id . "', ";
 					$query .= "value = '1', ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "', ";
-					$query .= "ip = '$ip'";
+					$query .= "user_id = '$user_id'";
 				}
 			} else {
 				if ( $has_already_voted ) {
@@ -81,13 +80,13 @@ function WtiLikePostProcessVote() {
 					$query .= "value = value - 1, ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "' ";
 					$query .= "WHERE post_id = '" . $post_id . "' AND ";
-					$query .= "ip = '$ip'";
+                    $query .= "user_id = '$user_id'";
 				} else {
 					$query = "INSERT INTO {$wpdb->prefix}wti_like_post SET ";
 					$query .= "post_id = '" . $post_id . "', ";
 					$query .= "value = '-1', ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "', ";
-					$query .= "ip = '$ip'";
+                    $query .= "user_id = '$user_id'";
 				}
 			}
 			
