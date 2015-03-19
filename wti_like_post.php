@@ -550,8 +550,9 @@ function WtiVoteExpirationDateSave( $post_id ) {
 	// Sanitize user input.
 	$my_data = sanitize_text_field( $_POST['wti_like_post_expiration_date'] );
 
-    $my_data = date_create_from_format('d/m/Y', $my_data)->format('Y-m-d');
-
+    if (!empty($my_data)) {
+        $my_data = date_create_from_format('d/m/Y', $my_data)->format('Y-m-d');
+    }
 	// Update the meta field in the database.
 	update_post_meta( $post_id, '_wti_like_post_expiration_date', $my_data );
 }

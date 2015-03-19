@@ -5,6 +5,12 @@
  * @return string
  */
 function GetWtiLikePost($arg = null) {
+
+    //check is is post page
+    if (!is_single()) {
+        return;
+    }
+
      global $wpdb;
      $post_id = get_the_ID();
      $wti_like_post = "";
@@ -25,17 +31,17 @@ function GetWtiLikePost($arg = null) {
      
      $title_text = get_option('wti_like_post_title_text');
      $category = get_the_category();
-     $excluded = false;
+     $excluded = true;
      
      // Checking for excluded section. if yes, then dont show the like/dislike option
      if ((in_array('home', $excluded_sections) && is_home()) || (in_array('archive', $excluded_sections) && is_archive())) {
           return;
      }
      
-     // Checking for excluded categories
+     // Checking for allowed categories
      foreach($category as $cat) {
-          if (!in_array($cat->cat_ID, $allowed_categories) && !in_array($post_id, $allowed_posts)) {
-               $excluded = true;
+          if (in_array($cat->cat_ID, $allowed_categories) || in_array($post_id, $allowed_posts)) {
+               $excluded = false;
           }
      }
      
