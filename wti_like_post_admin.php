@@ -137,8 +137,16 @@ function WtiLikePostAdminContent() {
 										<input type="radio" name="wti_like_post_login_required" id="login_no" value="0" <?php if ((0 == get_option('wti_like_post_login_required')) || ('' == get_option('wti_like_post_login_required'))) { echo 'checked'; } ?> /> <?php echo __('No', 'wti-like-post'); ?>
 										<span class="description"><?php _e('Select whether only logged in users can vote or not.', 'wti-like-post');?></span>
 									</td>
-								</tr>			
-								<tr valign="top">
+								</tr>
+                                <tr valign="top">
+                                    <th scope="row"><label><?php _e('Display votes', 'wti-like-post'); ?></label></th>
+                                    <td>
+                                        <input type="radio" name="wti_like_post_show_votes" id="show_votes_yes" value="1" <?php if (1 == get_option('wti_like_post_show_votes')) { echo 'checked'; } ?> /> <?php echo __('Yes', 'wti-like-post'); ?>
+                                        <input type="radio" name="wti_like_post_show_votes" id="show_votes_no" value="0" <?php if ((0 == get_option('wti_like_post_show_votes')) || ('' == get_option('wti_like_post_show_votes'))) { echo 'checked'; } ?> /> <?php echo __('No', 'wti-like-post'); ?>
+                                        <span class="description"><?php _e('Select whether to display the votes or not.', 'wti-like-post');?></span>
+                                    </td>
+                                </tr>
+                                <tr valign="top">
 									<th scope="row"><label><?php _e('Login required message', 'wti-like-post'); ?></label></th>
 									<td>	
 										<input type="text" size="40" name="wti_like_post_login_message" id="wti_like_post_login_message" value="<?php echo get_option('wti_like_post_login_message'); ?>" />
@@ -282,6 +290,8 @@ function WtiLikePostAdminContent() {
 				document.getElementById('wti_like_post_voting_style').value = 'style1';
 				document.getElementById('login_yes').checked = false;
 				document.getElementById('login_no').checked = true;
+                document.getElementById('show_votes_yes').checked = true;
+                document.getElementById('show_votes_no').checked = false;
 				document.getElementById('wti_like_post_login_message').value = 'Please login to vote.';
 				document.getElementById('wti_like_post_thank_message').value = 'Thanks for your vote.';
 				document.getElementById('wti_like_post_voted_message').value = 'You have already voted.';

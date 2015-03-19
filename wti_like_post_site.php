@@ -67,7 +67,48 @@ function GetWtiLikePost($arg = null) {
           $alignment = ("left" == get_option('wti_like_post_alignment')) ? 'align-left' : 'align-right';
           $show_dislike = get_option('wti_like_post_show_dislike');
           $style = (get_option('wti_like_post_voting_style') == "") ? 'style1' : get_option('wti_like_post_voting_style');
-          
+
+         if (get_option('wti_like_post_show_votes')) {
+             $votes = GetWtiVotes($post_id);
+             $wti_votes = '';
+             $wti_pro = 0;
+             $wti_con = 0;
+             $wti_votes .= '<table class="table table-striped">';
+             $wti_votes .= '<thead>';
+             $wti_votes .= '<tr>';
+             $wti_votes .= '<td>' . __('Username', 'wti-like-post') . '</td>';
+             $wti_votes .= '<td>' . __('YES', 'wti-like-post') . '</td>';
+             $wti_votes .= '<td>' . __('NO', 'wti-like-post') . '</td>';
+             $wti_votes .= '</tr>';
+             $wti_votes .= '</thead>';
+             $wti_votes .= '<tbody>';
+             foreach ($votes as $vote) {
+                 $wti_votes .= '<tr>';
+                 $wti_votes .= '<td>' . get_userdata($vote->user_id)->user_login . '</td>';
+                 if($vote->value > 0) {
+                     ++$wti_pro;
+                     $wti_votes .= '<td class="vote-checked"> X </td>';
+                     $wti_votes .= '<td class="vote-unchecked">&nbsp;</td>';
+                 } else {
+                     ++$wti_con;
+                     $wti_votes .= '<td class="vote-unchecked">&nbsp;</td>';
+                     $wti_votes .= '<td class="vote-checked"> X </td>';
+                 }
+                 $wti_votes .= '</tr>';
+             }
+             $wti_votes .= '</tbody>';
+             $wti_votes .= '<tfoot>';
+             $wti_votes .= '<tr>';
+             $wti_votes .= '<td>' . __('Total', 'wti-like-post') . '</td>';
+             $wti_votes .= '<td>' . $wti_pro . '</td>';
+             $wti_votes .= '<td>' . $wti_con . '</td>';
+             $wti_votes .= '</tr>';
+             $wti_votes .= '</tfoot>';
+             $wti_votes .= '</table>';
+
+             $wti_like_post .= $wti_votes;
+         }
+
           $wti_like_post .= "<div class='watch-action'>";
           $wti_like_post .= "<div class='watch-position " . $alignment . "'>";
           

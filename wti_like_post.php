@@ -121,6 +121,7 @@ function SetOptionsWtiLikePost() {
      add_option('wti_like_post_voting_style', 'style1', '', 'yes');
      add_option('wti_like_post_alignment', 'left', '', 'yes');
      add_option('wti_like_post_position', 'bottom', '', 'yes');
+     add_option('wti_like_post_show_votes', '1', '', 'yes');
      add_option('wti_like_post_login_required', '0', '', 'yes');
      add_option('wti_like_post_login_message', __('Please login to vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_thank_message', __('Thanks for your vote.', 'wti-like-post'), '', 'yes');
@@ -157,6 +158,7 @@ function UnsetOptionsWtiLikePost() {
 		delete_option('wti_like_post_voting_style');
 		delete_option('wti_like_post_alignment');
 		delete_option('wti_like_post_position');
+        delete_option('wti_like_post_show_votes');
 		delete_option('wti_like_post_login_required');
 		delete_option('wti_like_post_login_message');
 		delete_option('wti_like_post_thank_message');
@@ -183,6 +185,7 @@ function WtiLikePostAdminRegisterSettings() {
      register_setting('wti_like_post_options', 'wti_like_post_voting_style');
      register_setting('wti_like_post_options', 'wti_like_post_alignment');
      register_setting('wti_like_post_options', 'wti_like_post_position');
+     register_setting('wti_like_post_options', 'wti_like_post_show_votes');
      register_setting('wti_like_post_options', 'wti_like_post_login_required');
      register_setting('wti_like_post_options', 'wti_like_post_login_message');
      register_setting('wti_like_post_options', 'wti_like_post_thank_message');
@@ -433,6 +436,22 @@ function GetWtiUnlikeCount($post_id) {
 	}
 	
 	return $wti_unlike_count;
+}
+
+/**
+ * Get votes for a post
+ * @param $post_id integer
+ * @return string
+ */
+function GetWtiVotes($post_id) {
+    global $wpdb;
+    $wti_votes = $wpdb->get_results("SELECT user_id, value FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id'");
+
+    if (!$wti_votes) {
+        $wti_votes = array();
+    }
+
+    return $wti_votes;
 }
 
 // Load the widgets

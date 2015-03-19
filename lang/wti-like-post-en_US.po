@@ -221,6 +221,14 @@ msgstr "Login required to vote"
 msgid "Select whether only logged in users can vote or not."
 msgstr "Select whether only logged in users can vote or not."
 
+#: ../wti_like_post_admin.php:134
+msgid "Display votes"
+msgstr "Display votes"
+
+#: ../wti_like_post_admin.php:138
+msgid "Select whether to display the votes or not."
+msgstr "Select whether to display the votes or not."
+
 #: ../wti_like_post_admin.php:142
 msgid "Login required message"
 msgstr "Login required message"
@@ -584,6 +592,18 @@ msgstr "Number of entries to show"
 #: ../wti_like_post_widgets.php:179
 msgid "Default"
 msgstr "Default"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "YES"
+msgstr "YES"
+
+msgid "NO"
+msgstr "NO"
+
+msgid "Total"
+msgstr "Total"
 
 #~ msgid "jQuery Framework"
 #~ msgstr "jQuery Framework"
