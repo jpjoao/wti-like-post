@@ -5,6 +5,12 @@
  * @return string
  */
 function GetWtiLikePost($arg = null) {
+
+    //check is is post page
+    if (!is_single()) {
+        return;
+    }
+
      global $wpdb;
      $post_id = get_the_ID();
      $wti_like_post = "";
