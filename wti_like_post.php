@@ -121,13 +121,15 @@ function SetOptionsWtiLikePost() {
      add_option('wti_like_post_voting_style', 'style1', '', 'yes');
      add_option('wti_like_post_alignment', 'left', '', 'yes');
      add_option('wti_like_post_position', 'bottom', '', 'yes');
+     add_option('wti_like_post_show_votes', '1', '', 'yes');
+     add_option('wti_like_post_enforce_date_limit', '1', '', 'yes');
      add_option('wti_like_post_login_required', '0', '', 'yes');
      add_option('wti_like_post_login_message', __('Please login to vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_thank_message', __('Thanks for your vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_voted_message', __('You have already voted.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_allowed_posts', '', '', 'yes');
      add_option('wti_like_post_excluded_posts', '', '', 'yes');
-     add_option('wti_like_post_excluded_categories', '', '', 'yes');
+     add_option('wti_like_post_allowed_categories', '', '', 'yes');
      add_option('wti_like_post_excluded_sections', '', '', 'yes');
      add_option('wti_like_post_show_on_pages', '0', '', 'yes');
      add_option('wti_like_post_show_on_widget', '1', '', 'yes');
@@ -157,6 +159,8 @@ function UnsetOptionsWtiLikePost() {
 		delete_option('wti_like_post_voting_style');
 		delete_option('wti_like_post_alignment');
 		delete_option('wti_like_post_position');
+        delete_option('wti_like_post_show_votes');
+        delete_option('wti_like_post_enforce_date_limit');
 		delete_option('wti_like_post_login_required');
 		delete_option('wti_like_post_login_message');
 		delete_option('wti_like_post_thank_message');
@@ -164,7 +168,7 @@ function UnsetOptionsWtiLikePost() {
 		delete_option('wti_like_post_db_version');
 		delete_option('wti_like_post_allowed_posts');
 		delete_option('wti_like_post_excluded_posts');
-		delete_option('wti_like_post_excluded_categories');
+		delete_option('wti_like_post_allowed_categories');
 		delete_option('wti_like_post_excluded_sections');
 		delete_option('wti_like_post_show_on_pages');
 		delete_option('wti_like_post_show_on_widget');
@@ -183,13 +187,15 @@ function WtiLikePostAdminRegisterSettings() {
      register_setting('wti_like_post_options', 'wti_like_post_voting_style');
      register_setting('wti_like_post_options', 'wti_like_post_alignment');
      register_setting('wti_like_post_options', 'wti_like_post_position');
+     register_setting('wti_like_post_options', 'wti_like_post_show_votes');
+     register_setting('wti_like_post_options', 'wti_like_post_enforce_date_limit');
      register_setting('wti_like_post_options', 'wti_like_post_login_required');
      register_setting('wti_like_post_options', 'wti_like_post_login_message');
      register_setting('wti_like_post_options', 'wti_like_post_thank_message');
      register_setting('wti_like_post_options', 'wti_like_post_voted_message');
      register_setting('wti_like_post_options', 'wti_like_post_allowed_posts');
      register_setting('wti_like_post_options', 'wti_like_post_excluded_posts');
-     register_setting('wti_like_post_options', 'wti_like_post_excluded_categories');
+     register_setting('wti_like_post_options', 'wti_like_post_allowed_categories');
      register_setting('wti_like_post_options', 'wti_like_post_excluded_sections');
      register_setting('wti_like_post_options', 'wti_like_post_show_on_pages');
      register_setting('wti_like_post_options', 'wti_like_post_show_on_widget');
@@ -242,42 +248,29 @@ if (is_admin()) {
 }
 
 /**
- * Get the actual ip address
+ * Get the user id
  * @param no-param
  * @return string
  */
-function WtiGetRealIpAddress() {
-	if (getenv('HTTP_CLIENT_IP')) {
-		$ip = getenv('HTTP_CLIENT_IP');
-	} elseif (getenv('HTTP_X_FORWARDED_FOR')) {
-		$ip = getenv('HTTP_X_FORWARDED_FOR');
-	} elseif (getenv('HTTP_X_FORWARDED')) {
-		$ip = getenv('HTTP_X_FORWARDED');
-	} elseif (getenv('HTTP_FORWARDED_FOR')) {
-		$ip = getenv('HTTP_FORWARDED_FOR');
-	} elseif (getenv('HTTP_FORWARDED')) {
-		$ip = getenv('HTTP_FORWARDED');
-	} else {
-		$ip = $_SERVER['REMOTE_ADDR'];
-	}
-	
-	return $ip;
+function WtiGetUserId() {
+    $current_user = wp_get_current_user();
+    return (int)$current_user->ID;
 }
 
 /**
  * Check whether user has already voted or not
  * @param $post_id integer
- * @param $ip string
+ * @param $user_id integer
  * @return integer
  */
-function HasWtiAlreadyVoted($post_id, $ip = null) {
+function HasWtiAlreadyVoted($post_id, $user_id = null) {
 	global $wpdb;
 	
-	if (null == $ip) {
-		$ip = WtiGetRealIpAddress();
+	if (null == $user_id) {
+        $user_id = WtiGetUserId();
 	}
 	
-	$wti_has_voted = $wpdb->get_var("SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND ip = '$ip'");
+	$wti_has_voted = $wpdb->get_var("SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND user_id = '$user_id'");
 	
 	return $wti_has_voted;
 }
@@ -285,17 +278,17 @@ function HasWtiAlreadyVoted($post_id, $ip = null) {
 /**
  * Get last voted date for a given post by ip
  * @param $post_id integer
- * @param $ip string
+ * @param $user_id integer
  * @return string
  */
-function GetWtiLastVotedDate($post_id, $ip = null) {
+function GetWtiLastVotedDate($post_id, $user_id = null) {
      global $wpdb;
      
-     if (null == $ip) {
-          $ip = WtiGetRealIpAddress();
+     if (null == $user_id) {
+         $user_id = WtiGetUserId();
      }
      
-     $wti_has_voted = $wpdb->get_var("SELECT date_time FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND ip = '$ip'");
+     $wti_has_voted = $wpdb->get_var("SELECT date_time FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND user_id = '$user_id'");
 
      return $wti_has_voted;
 }
@@ -447,6 +440,159 @@ function GetWtiUnlikeCount($post_id) {
 	
 	return $wti_unlike_count;
 }
+
+/**
+ * Get votes for a post
+ * @param $post_id integer
+ * @return string
+ */
+function GetWtiVotes($post_id) {
+    global $wpdb;
+    $wti_votes = $wpdb->get_results("SELECT user_id, value FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id'");
+
+    if (!$wti_votes) {
+        $wti_votes = array();
+    }
+
+    return $wti_votes;
+}
+
+/**
+ * Adds a date-limit meta to posts
+ */
+function WtiAddVoteExpirationDate() {
+
+    add_meta_box(
+        'wti_vote_expiration_date',
+        __( 'Vote Expiration Date', 'wti-like-post' ),
+        'WtiVoteExpirationDateCallback',
+        'post'
+    );
+}
+add_action( 'add_meta_boxes', 'WtiAddVoteExpirationDate' );
+
+/**
+ * Prints the expiration form.
+ *
+ * @param WP_Post $post The object for the current post/page.
+ */
+function WtiVoteExpirationDateCallback( $post ) {
+
+	// Add an nonce field so we can check for it later.
+	wp_nonce_field( 'wti_like_post_expiration_date', 'wti_like_post_expiration_date_nonce' );
+
+	/*
+	 * Use get_post_meta() to retrieve an existing value
+	 * from the database and use the value for the form.
+	 */
+	$value = get_post_meta( $post->ID, '_wti_like_post_expiration_date', true );
+
+    if (!empty($value))
+    {
+        $value = date_create_from_format('Y-m-d', $value);
+        $value = $value->format('d/m/Y');
+    }
+
+	echo '<label for="wti_like_post_expiration_date">';
+	_e( 'Expiration date for voting', 'wti-like-post' );
+	echo '</label> ';
+	echo '<input type="text" id="wti_like_post_expiration_date" name="wti_like_post_expiration_date" value="' . esc_attr( $value ) . '" size="10" />';
+}
+
+/**
+ * When the post is saved, saves our custom data.
+ *
+ * @param int $post_id The ID of the post being saved.
+ */
+function WtiVoteExpirationDateSave( $post_id ) {
+
+	/*
+	 * We need to verify this came from our screen and with proper authorization,
+	 * because the save_post action can be triggered at other times.
+	 */
+
+	// Check if our nonce is set.
+	if ( ! isset( $_POST['wti_like_post_expiration_date_nonce'] ) ) {
+		return;
+	}
+
+	// Verify that the nonce is valid.
+	if ( ! wp_verify_nonce( $_POST['wti_like_post_expiration_date_nonce'], 'wti_like_post_expiration_date' ) ) {
+		return;
+	}
+
+	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check the user's permissions.
+	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
+
+		if ( ! current_user_can( 'edit_page', $post_id ) ) {
+			return;
+		}
+
+	} else {
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+
+	/* OK, it's safe for us to save the data now. */
+
+	// Make sure that it is set.
+	if ( ! isset( $_POST['wti_like_post_expiration_date'] ) ) {
+		return;
+	}
+
+	// Sanitize user input.
+	$my_data = sanitize_text_field( $_POST['wti_like_post_expiration_date'] );
+
+    $my_data = date_create_from_format('d/m/Y', $my_data)->format('Y-m-d');
+
+	// Update the meta field in the database.
+	update_post_meta( $post_id, '_wti_like_post_expiration_date', $my_data );
+}
+add_action( 'save_post', 'WtiVoteExpirationDateSave' );
+
+function WtiVoteRegisterAdminScripts() {
+    wp_enqueue_script( 'jquery-ui-datepicker' );
+    wp_enqueue_style( 'jquery-ui-datepicker', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/smoothness/jquery-ui.css' );
+    wp_enqueue_script( 'wti-like-post-admin', plugins_url( 'wti-like-post/js/admin.js' ) );
+}
+
+/**
+ * Checks if the voting is open for the post
+ *
+ * @param $post_id integer
+ * @param $enforce_limit bool
+ *
+ * @return bool
+ */
+function WtiIsVoteOpen($post_id, $enforce_limit) {
+    $is_vote_open = true;
+    if ($enforce_limit) {
+        $post_vote_expire_date = get_post_meta($post_id, '_wti_like_post_expiration_date', true);
+        if (empty($post_vote_expire_date)) {
+            $is_vote_open = true;
+        } else {
+            $post_vote_expire_date = date_create_from_format('Y-m-d', $post_vote_expire_date);
+            $post_vote_expire_date->setTime(23,59,59);
+            $today = date_create();
+            if($today <= $post_vote_expire_date) {
+                $is_vote_open = true;
+            } else {
+                $is_vote_open = false;
+            }
+        }
+    }
+
+    return $is_vote_open;
+}
+
+add_action( 'admin_enqueue_scripts', 'WtiVoteRegisterAdminScripts' );
 
 // Load the widgets
 require_once('wti_like_post_widgets.php');

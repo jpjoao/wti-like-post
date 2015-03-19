@@ -20,14 +20,14 @@ function WtiLikePostAdminContent() {
      global $wpdb, $wti_like_post_db_version;
      
 	$excluded_sections = get_option('wti_like_post_excluded_sections');
-	$excluded_categories = get_option('wti_like_post_excluded_categories');
+	$allowed_categories = get_option('wti_like_post_allowed_categories');
 	
 	if (empty($excluded_sections)) {
 		$excluded_sections = array();
 	}
 	
-	if (empty($excluded_categories)) {
-		$excluded_categories = array();
+	if (empty($allowed_categories)) {
+        $allowed_categories = array();
 	}
 ?>
 <div class="wrap">
@@ -137,8 +137,24 @@ function WtiLikePostAdminContent() {
 										<input type="radio" name="wti_like_post_login_required" id="login_no" value="0" <?php if ((0 == get_option('wti_like_post_login_required')) || ('' == get_option('wti_like_post_login_required'))) { echo 'checked'; } ?> /> <?php echo __('No', 'wti-like-post'); ?>
 										<span class="description"><?php _e('Select whether only logged in users can vote or not.', 'wti-like-post');?></span>
 									</td>
-								</tr>			
-								<tr valign="top">
+								</tr>
+                                <tr valign="top">
+                                    <th scope="row"><label><?php _e('Display votes', 'wti-like-post'); ?></label></th>
+                                    <td>
+                                        <input type="radio" name="wti_like_post_show_votes" id="show_votes_yes" value="1" <?php if (1 == get_option('wti_like_post_show_votes')) { echo 'checked'; } ?> /> <?php echo __('Yes', 'wti-like-post'); ?>
+                                        <input type="radio" name="wti_like_post_show_votes" id="show_votes_no" value="0" <?php if ((0 == get_option('wti_like_post_show_votes')) || ('' == get_option('wti_like_post_show_votes'))) { echo 'checked'; } ?> /> <?php echo __('No', 'wti-like-post'); ?>
+                                        <span class="description"><?php _e('Select whether to display the votes or not.', 'wti-like-post');?></span>
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <th scope="row"><label><?php _e('Enforce date limit', 'wti-like-post'); ?></label></th>
+                                    <td>
+                                        <input type="radio" name="wti_like_post_enforce_date_limit" id="enforce_date_limit_yes" value="1" <?php if (1 == get_option('wti_like_post_enforce_date_limit')) { echo 'checked'; } ?> /> <?php echo __('Yes', 'wti-like-post'); ?>
+                                        <input type="radio" name="wti_like_post_enforce_date_limit" id="enforce_date_limit_no" value="0" <?php if ((0 == get_option('wti_like_post_enforce_date_limit')) || ('' == get_option('wti_like_post_enforce_date_limit'))) { echo 'checked'; } ?> /> <?php echo __('No', 'wti-like-post'); ?>
+                                        <span class="description"><?php _e('Follow a date limit on the post to enable voting', 'wti-like-post');?></span>
+                                    </td>
+                                </tr>
+                                <tr valign="top">
 									<th scope="row"><label><?php _e('Login required message', 'wti-like-post'); ?></label></th>
 									<td>	
 										<input type="text" size="40" name="wti_like_post_login_message" id="wti_like_post_login_message" value="<?php echo get_option('wti_like_post_login_message'); ?>" />
@@ -176,14 +192,14 @@ function WtiLikePostAdminContent() {
 									</td>
 								</tr>
 								<tr valign="top">
-									<th scope="row"><label><?php _e('Exclude selected categories', 'wti-like-post'); ?></label></th>
+									<th scope="row"><label><?php _e('Include selected categories', 'wti-like-post'); ?></label></th>
 									<td>	
-										<select name='wti_like_post_excluded_categories[]' id='wti_like_post_excluded_categories' multiple="multiple" size="4" style="height:auto !important;">
+										<select name='wti_like_post_allowed_categories[]' id='wti_like_post_allowed_categories' multiple="multiple" size="4" style="height:auto !important;">
 											<?php 
 											$categories=  get_categories();
 											
 											foreach ($categories as $category) {
-												$selected = (in_array($category->cat_ID, $excluded_categories)) ? 'selected="selected"' : '';
+												$selected = (in_array($category->cat_ID, $allowed_categories)) ? 'selected="selected"' : '';
 												$option  = '<option value="' . $category->cat_ID . '" ' . $selected . '>';
 												$option .= $category->cat_name;
 												$option .= ' (' . $category->category_count . ')';
@@ -192,7 +208,7 @@ function WtiLikePostAdminContent() {
 											}
 											?>
 										</select>
-										<span class="description"><?php _e('Select categories where you do not want to show the like option. It has higher priority than "Exclude post/page IDs" setting.', 'wti-like-post');?></span>
+										<span class="description"><?php _e('Select categories where you want to show the like option. It has higher priority than \"Allowed post/page IDs\" setting.', 'wti-like-post');?></span>
 									</td>
 								</tr>
 								<tr valign="top">
@@ -282,6 +298,10 @@ function WtiLikePostAdminContent() {
 				document.getElementById('wti_like_post_voting_style').value = 'style1';
 				document.getElementById('login_yes').checked = false;
 				document.getElementById('login_no').checked = true;
+                document.getElementById('show_votes_yes').checked = true;
+                document.getElementById('show_votes_no').checked = false;
+                document.getElementById('enforce_date_limit_yes').checked = true;
+                document.getElementById('enforce_date_limit_no').checked = false;
 				document.getElementById('wti_like_post_login_message').value = 'Please login to vote.';
 				document.getElementById('wti_like_post_thank_message').value = 'Thanks for your vote.';
 				document.getElementById('wti_like_post_voted_message').value = 'You have already voted.';
@@ -289,7 +309,7 @@ function WtiLikePostAdminContent() {
 				document.getElementById('show_pages_no').checked = true;
 				document.getElementById('wti_like_post_allowed_posts').value = '';
 				document.getElementById('wti_like_post_excluded_posts').value = '';
-				document.getElementById('wti_like_post_excluded_categories').selectedIndex = -1;
+				document.getElementById('wti_like_post_allowed_categories').selectedIndex = -1;
 				document.getElementById('wti_like_post_excluded_home').value = '';
 				document.getElementById('wti_like_post_excluded_archive').value = '';
 				document.getElementById('show_widget_yes').checked = true;

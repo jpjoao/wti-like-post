@@ -160,7 +160,7 @@
 	color: green;
 }
 .unlbg-style2 .unlc {
-	color: red;		
+	color: red;
 }
 /** END Style2 STYLE**/
 
@@ -193,4 +193,19 @@
 .unlbg-style3 .unlc {
 	color: red;		
 }
+
+.table tbody tr td.vote-checked{
+    background-color: #dff0d8;
+    text-align: center;
+}
+
+.table tbody tr td.vote-unchecked{
+    background-color: #f2dede;
+    text-align: center;
+}
+
+.table tfoot tr td, .table thead tr td{
+    text-align: center;
+}
+
 /** END Style3 STYLE**/

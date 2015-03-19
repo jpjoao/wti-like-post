@@ -12,11 +12,11 @@ function GetWtiLikePost($arg = null) {
      // Get the posts ids where we do not need to show like functionality
      $allowed_posts = explode(",", get_option('wti_like_post_allowed_posts'));
      $excluded_posts = explode(",", get_option('wti_like_post_excluded_posts'));
-     $excluded_categories = get_option('wti_like_post_excluded_categories');
+     $allowed_categories = get_option('wti_like_post_allowed_categories');
      $excluded_sections = get_option('wti_like_post_excluded_sections');
      
-     if (empty($excluded_categories)) {
-          $excluded_categories = array();
+     if (empty($allowed_categories)) {
+         $allowed_categories = array();
      }
      
      if (empty($excluded_sections)) {
@@ -34,7 +34,7 @@ function GetWtiLikePost($arg = null) {
      
      // Checking for excluded categories
      foreach($category as $cat) {
-          if (in_array($cat->cat_ID, $excluded_categories) && !in_array($post_id, $allowed_posts)) {
+          if (!in_array($cat->cat_ID, $allowed_categories) && !in_array($post_id, $allowed_posts)) {
                $excluded = true;
           }
      }
@@ -67,27 +67,81 @@ function GetWtiLikePost($arg = null) {
           $alignment = ("left" == get_option('wti_like_post_alignment')) ? 'align-left' : 'align-right';
           $show_dislike = get_option('wti_like_post_show_dislike');
           $style = (get_option('wti_like_post_voting_style') == "") ? 'style1' : get_option('wti_like_post_voting_style');
-          
-          $wti_like_post .= "<div class='watch-action'>";
-          $wti_like_post .= "<div class='watch-position " . $alignment . "'>";
-          
-          $wti_like_post .= "<div class='action-like'>";
-          $wti_like_post .= "<a class='lbg-" . $style . " like-" . $post_id . " jlk' href='" . $ajax_like_link . "' data-task='like' data-post_id='" . $post_id . "' data-nonce='" . $nonce . "' rel='nofollow'>";
-          $wti_like_post .= "<img src='" . plugins_url( 'images/pixel.gif' , __FILE__ ) . "' title='" . __($title_text_like, 'wti-like-post') . "' />";
-          $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
-          $wti_like_post .= "</a></div>";
-          
-          if ($show_dislike) {
-               $wti_like_post .= "<div class='action-unlike'>";
-               $wti_like_post .= "<a class='unlbg-" . $style . " unlike-" . $post_id . " jlk' href='" . $ajax_unlike_link . "' data-task='unlike' data-post_id='" . $post_id . "' data-nonce='" . $nonce . "' rel='nofollow'>";
-               $wti_like_post .= "<img src='" . plugins_url( 'images/pixel.gif' , __FILE__ ) . "' title='" . __($title_text_unlike, 'wti-like-post') . "' />";
-               $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
-               $wti_like_post .= "</a></div> ";
+
+          if (get_option('wti_like_post_show_votes')) {
+             $votes = GetWtiVotes($post_id);
+             $wti_votes = '';
+             $wti_pro = 0;
+             $wti_con = 0;
+             $wti_votes .= '<table class="table table-striped">';
+             $wti_votes .= '<thead>';
+             $wti_votes .= '<tr>';
+             $wti_votes .= '<td>' . __('Username', 'wti-like-post') . '</td>';
+             $wti_votes .= '<td>' . $title_text_like . '</td>';
+             $wti_votes .= '<td>' . $title_text_unlike . '</td>';
+             $wti_votes .= '</tr>';
+             $wti_votes .= '</thead>';
+             $wti_votes .= '<tbody>';
+             foreach ($votes as $vote) {
+                 $wti_votes .= '<tr>';
+                 $wti_votes .= '<td>' . get_userdata($vote->user_id)->user_login . '</td>';
+                 if($vote->value > 0) {
+                     ++$wti_pro;
+                     $wti_votes .= '<td class="vote-checked"> X </td>';
+                     $wti_votes .= '<td class="vote-unchecked">&nbsp;</td>';
+                 } else {
+                     ++$wti_con;
+                     $wti_votes .= '<td class="vote-unchecked">&nbsp;</td>';
+                     $wti_votes .= '<td class="vote-checked"> X </td>';
+                 }
+                 $wti_votes .= '</tr>';
+             }
+             $wti_votes .= '</tbody>';
+             $wti_votes .= '<tfoot>';
+             $wti_votes .= '<tr>';
+             $wti_votes .= '<td>' . __('Total', 'wti-like-post') . '</td>';
+             $wti_votes .= '<td>' . $wti_pro . '</td>';
+             $wti_votes .= '<td>' . $wti_con . '</td>';
+             $wti_votes .= '</tr>';
+             $wti_votes .= '</tfoot>';
+             $wti_votes .= '</table>';
+
+             $wti_like_post .= $wti_votes;
           }
-          
-          $wti_like_post .= "</div> ";
-          $wti_like_post .= "<div class='status-" . $post_id . " status " . $alignment . "'>&nbsp;&nbsp;" . $msg . "</div>";
-          $wti_like_post .= "</div><div class='wti-clear'></div>";
+
+          if (WtiIsVoteOpen($post_id, get_option('wti_like_post_enforce_date_limit')))
+          {
+              $wti_like_post .= "<div class='watch-action'>";
+              $wti_like_post .= "<div class='watch-position " . $alignment . "'>";
+
+              $wti_like_post .= "<div class='action-like'>";
+              $wti_like_post .= "<a class='lbg-" . $style . " like-" . $post_id . " jlk' href='" . $ajax_like_link
+                  . "' data-task='like' data-post_id='" . $post_id . "' data-nonce='" . $nonce . "' rel='nofollow'>";
+              $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
+                      $title_text_like, 'wti-like-post'
+                  ) . "' />";
+              $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
+              $wti_like_post .= "</a></div>";
+
+              if ($show_dislike)
+              {
+                  $wti_like_post .= "<div class='action-unlike'>";
+                  $wti_like_post
+                      .= "<a class='unlbg-" . $style . " unlike-" . $post_id . " jlk' href='" . $ajax_unlike_link
+                      . "' data-task='unlike' data-post_id='" . $post_id . "' data-nonce='" . $nonce
+                      . "' rel='nofollow'>";
+                  $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
+                          $title_text_unlike, 'wti-like-post'
+                      ) . "' />";
+                  $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
+                  $wti_like_post .= "</a></div> ";
+              }
+
+              $wti_like_post .= "</div> ";
+              $wti_like_post .= "<div class='status-" . $post_id . " status " . $alignment . "'>&nbsp;&nbsp;" . $msg
+                  . "</div>";
+              $wti_like_post .= "</div><div class='wti-clear'></div>";
+          }
      }
      
      if ($arg == 'put') {
@@ -131,19 +185,19 @@ add_filter('the_content', 'PutWtiLikePost');
 /**
  * Get already voted message
  * @param $post_id integer
- * @param $ip string
+ * @param $user_id integer
  * @return string
  */
-function GetWtiVotedMessage($post_id, $ip = null) {
+function GetWtiVotedMessage($post_id, $user_id = null) {
      global $wpdb;
      $wti_voted_message = '';
      $voting_period = get_option('wti_like_post_voting_period');
      
-     if (null == $ip) {
-          $ip = WtiGetRealIpAddress();
+     if (null == $user_id) {
+         $user_id = WtiGetUserId();
      }
      
-     $query = "SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND ip = '$ip'";
+     $query = "SELECT COUNT(id) AS has_voted FROM {$wpdb->prefix}wti_like_post WHERE post_id = '$post_id' AND user_id = '$user_id'";
      
      if ($voting_period != 0 && $voting_period != 'once') {
           // If there is restriction on revoting with voting period, check with voting time
