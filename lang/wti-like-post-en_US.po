@@ -285,6 +285,14 @@ msgstr "Include selected categories"
 msgid "Select categories where you want to show the like option. It has higher priority than \"Allowed post/page IDs\" setting."
 msgstr "Select categories where you do to show the like option. It has higher priority than \"Allowed post/page IDs\" setting."
 
+#: ../wti_like_post_admin.php:179
+msgid "Enforce date limit"
+msgstr "Enforce date limit"
+
+#: ../wti_like_post_admin.php:195
+msgid "Follow a date limit on the post to enable voting"
+msgstr "Follow a date limit on the post to enable voting"
+
 #: ../wti_like_post_admin.php:199
 msgid "Allow post IDs"
 msgstr "Allow post IDs"

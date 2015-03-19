@@ -12,7 +12,11 @@ function WtiLikePostProcessVote() {
 	if ( !wp_verify_nonce( $_REQUEST['nonce'], 'wti_like_post_vote_nonce' ) ) {
 		$error = 1;
 		$msg = __( 'Invalid access', 'wti-like-post' );
-	} else {
+	} elseif (!WtiIsVoteOpen($post_id, get_option('wti_like_post_enforce_date_limit')))
+    {
+		$error = 1;
+		$msg = __( 'Invalid access', 'wti-like-post' );
+    } else {
 		// Get setting data
 		$is_logged_in = is_user_logged_in();
 		$login_required = get_option( 'wti_like_post_login_required' );
@@ -59,7 +63,7 @@ function WtiLikePostProcessVote() {
 		}
 		
 		if ( $can_vote ) {
-			
+
 			if ( $task == "like" ) {
 				if ( $has_already_voted ) {
 					$query = "UPDATE {$wpdb->prefix}wti_like_post SET ";

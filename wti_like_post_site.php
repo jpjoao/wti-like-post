@@ -68,7 +68,7 @@ function GetWtiLikePost($arg = null) {
           $show_dislike = get_option('wti_like_post_show_dislike');
           $style = (get_option('wti_like_post_voting_style') == "") ? 'style1' : get_option('wti_like_post_voting_style');
 
-         if (get_option('wti_like_post_show_votes')) {
+          if (get_option('wti_like_post_show_votes')) {
              $votes = GetWtiVotes($post_id);
              $wti_votes = '';
              $wti_pro = 0;
@@ -107,28 +107,41 @@ function GetWtiLikePost($arg = null) {
              $wti_votes .= '</table>';
 
              $wti_like_post .= $wti_votes;
-         }
-
-          $wti_like_post .= "<div class='watch-action'>";
-          $wti_like_post .= "<div class='watch-position " . $alignment . "'>";
-          
-          $wti_like_post .= "<div class='action-like'>";
-          $wti_like_post .= "<a class='lbg-" . $style . " like-" . $post_id . " jlk' href='" . $ajax_like_link . "' data-task='like' data-post_id='" . $post_id . "' data-nonce='" . $nonce . "' rel='nofollow'>";
-          $wti_like_post .= "<img src='" . plugins_url( 'images/pixel.gif' , __FILE__ ) . "' title='" . __($title_text_like, 'wti-like-post') . "' />";
-          $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
-          $wti_like_post .= "</a></div>";
-          
-          if ($show_dislike) {
-               $wti_like_post .= "<div class='action-unlike'>";
-               $wti_like_post .= "<a class='unlbg-" . $style . " unlike-" . $post_id . " jlk' href='" . $ajax_unlike_link . "' data-task='unlike' data-post_id='" . $post_id . "' data-nonce='" . $nonce . "' rel='nofollow'>";
-               $wti_like_post .= "<img src='" . plugins_url( 'images/pixel.gif' , __FILE__ ) . "' title='" . __($title_text_unlike, 'wti-like-post') . "' />";
-               $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
-               $wti_like_post .= "</a></div> ";
           }
-          
-          $wti_like_post .= "</div> ";
-          $wti_like_post .= "<div class='status-" . $post_id . " status " . $alignment . "'>&nbsp;&nbsp;" . $msg . "</div>";
-          $wti_like_post .= "</div><div class='wti-clear'></div>";
+
+          if (WtiIsVoteOpen($post_id, get_option('wti_like_post_enforce_date_limit')))
+          {
+              $wti_like_post .= "<div class='watch-action'>";
+              $wti_like_post .= "<div class='watch-position " . $alignment . "'>";
+
+              $wti_like_post .= "<div class='action-like'>";
+              $wti_like_post .= "<a class='lbg-" . $style . " like-" . $post_id . " jlk' href='" . $ajax_like_link
+                  . "' data-task='like' data-post_id='" . $post_id . "' data-nonce='" . $nonce . "' rel='nofollow'>";
+              $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
+                      $title_text_like, 'wti-like-post'
+                  ) . "' />";
+              $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
+              $wti_like_post .= "</a></div>";
+
+              if ($show_dislike)
+              {
+                  $wti_like_post .= "<div class='action-unlike'>";
+                  $wti_like_post
+                      .= "<a class='unlbg-" . $style . " unlike-" . $post_id . " jlk' href='" . $ajax_unlike_link
+                      . "' data-task='unlike' data-post_id='" . $post_id . "' data-nonce='" . $nonce
+                      . "' rel='nofollow'>";
+                  $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
+                          $title_text_unlike, 'wti-like-post'
+                      ) . "' />";
+                  $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
+                  $wti_like_post .= "</a></div> ";
+              }
+
+              $wti_like_post .= "</div> ";
+              $wti_like_post .= "<div class='status-" . $post_id . " status " . $alignment . "'>&nbsp;&nbsp;" . $msg
+                  . "</div>";
+              $wti_like_post .= "</div><div class='wti-clear'></div>";
+          }
      }
      
      if ($arg == 'put') {

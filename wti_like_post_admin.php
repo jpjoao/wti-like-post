@@ -147,6 +147,14 @@ function WtiLikePostAdminContent() {
                                     </td>
                                 </tr>
                                 <tr valign="top">
+                                    <th scope="row"><label><?php _e('Enforce date limit', 'wti-like-post'); ?></label></th>
+                                    <td>
+                                        <input type="radio" name="wti_like_post_enforce_date_limit" id="enforce_date_limit_yes" value="1" <?php if (1 == get_option('wti_like_post_enforce_date_limit')) { echo 'checked'; } ?> /> <?php echo __('Yes', 'wti-like-post'); ?>
+                                        <input type="radio" name="wti_like_post_enforce_date_limit" id="enforce_date_limit_no" value="0" <?php if ((0 == get_option('wti_like_post_enforce_date_limit')) || ('' == get_option('wti_like_post_enforce_date_limit'))) { echo 'checked'; } ?> /> <?php echo __('No', 'wti-like-post'); ?>
+                                        <span class="description"><?php _e('Follow a date limit on the post to enable voting', 'wti-like-post');?></span>
+                                    </td>
+                                </tr>
+                                <tr valign="top">
 									<th scope="row"><label><?php _e('Login required message', 'wti-like-post'); ?></label></th>
 									<td>	
 										<input type="text" size="40" name="wti_like_post_login_message" id="wti_like_post_login_message" value="<?php echo get_option('wti_like_post_login_message'); ?>" />
@@ -292,6 +300,8 @@ function WtiLikePostAdminContent() {
 				document.getElementById('login_no').checked = true;
                 document.getElementById('show_votes_yes').checked = true;
                 document.getElementById('show_votes_no').checked = false;
+                document.getElementById('enforce_date_limit_yes').checked = true;
+                document.getElementById('enforce_date_limit_no').checked = false;
 				document.getElementById('wti_like_post_login_message').value = 'Please login to vote.';
 				document.getElementById('wti_like_post_thank_message').value = 'Thanks for your vote.';
 				document.getElementById('wti_like_post_voted_message').value = 'You have already voted.';

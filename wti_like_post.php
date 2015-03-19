@@ -122,6 +122,7 @@ function SetOptionsWtiLikePost() {
      add_option('wti_like_post_alignment', 'left', '', 'yes');
      add_option('wti_like_post_position', 'bottom', '', 'yes');
      add_option('wti_like_post_show_votes', '1', '', 'yes');
+     add_option('wti_like_post_enforce_date_limit', '1', '', 'yes');
      add_option('wti_like_post_login_required', '0', '', 'yes');
      add_option('wti_like_post_login_message', __('Please login to vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_thank_message', __('Thanks for your vote.', 'wti-like-post'), '', 'yes');
@@ -159,6 +160,7 @@ function UnsetOptionsWtiLikePost() {
 		delete_option('wti_like_post_alignment');
 		delete_option('wti_like_post_position');
         delete_option('wti_like_post_show_votes');
+        delete_option('wti_like_post_enforce_date_limit');
 		delete_option('wti_like_post_login_required');
 		delete_option('wti_like_post_login_message');
 		delete_option('wti_like_post_thank_message');
@@ -186,6 +188,7 @@ function WtiLikePostAdminRegisterSettings() {
      register_setting('wti_like_post_options', 'wti_like_post_alignment');
      register_setting('wti_like_post_options', 'wti_like_post_position');
      register_setting('wti_like_post_options', 'wti_like_post_show_votes');
+     register_setting('wti_like_post_options', 'wti_like_post_enforce_date_limit');
      register_setting('wti_like_post_options', 'wti_like_post_login_required');
      register_setting('wti_like_post_options', 'wti_like_post_login_message');
      register_setting('wti_like_post_options', 'wti_like_post_thank_message');
@@ -453,6 +456,143 @@ function GetWtiVotes($post_id) {
 
     return $wti_votes;
 }
+
+/**
+ * Adds a date-limit meta to posts
+ */
+function WtiAddVoteExpirationDate() {
+
+    add_meta_box(
+        'wti_vote_expiration_date',
+        __( 'Vote Expiration Date', 'wti-like-post' ),
+        'WtiVoteExpirationDateCallback',
+        'post'
+    );
+}
+add_action( 'add_meta_boxes', 'WtiAddVoteExpirationDate' );
+
+/**
+ * Prints the expiration form.
+ *
+ * @param WP_Post $post The object for the current post/page.
+ */
+function WtiVoteExpirationDateCallback( $post ) {
+
+	// Add an nonce field so we can check for it later.
+	wp_nonce_field( 'wti_like_post_expiration_date', 'wti_like_post_expiration_date_nonce' );
+
+	/*
+	 * Use get_post_meta() to retrieve an existing value
+	 * from the database and use the value for the form.
+	 */
+	$value = get_post_meta( $post->ID, '_wti_like_post_expiration_date', true );
+
+    if (!empty($value))
+    {
+        $value = date_create_from_format('Y-m-d', $value);
+        $value = $value->format('d/m/Y');
+    }
+
+	echo '<label for="wti_like_post_expiration_date">';
+	_e( 'Expiration date for voting', 'wti-like-post' );
+	echo '</label> ';
+	echo '<input type="text" id="wti_like_post_expiration_date" name="wti_like_post_expiration_date" value="' . esc_attr( $value ) . '" size="10" />';
+}
+
+/**
+ * When the post is saved, saves our custom data.
+ *
+ * @param int $post_id The ID of the post being saved.
+ */
+function WtiVoteExpirationDateSave( $post_id ) {
+
+	/*
+	 * We need to verify this came from our screen and with proper authorization,
+	 * because the save_post action can be triggered at other times.
+	 */
+
+	// Check if our nonce is set.
+	if ( ! isset( $_POST['wti_like_post_expiration_date_nonce'] ) ) {
+		return;
+	}
+
+	// Verify that the nonce is valid.
+	if ( ! wp_verify_nonce( $_POST['wti_like_post_expiration_date_nonce'], 'wti_like_post_expiration_date' ) ) {
+		return;
+	}
+
+	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check the user's permissions.
+	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
+
+		if ( ! current_user_can( 'edit_page', $post_id ) ) {
+			return;
+		}
+
+	} else {
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+
+	/* OK, it's safe for us to save the data now. */
+
+	// Make sure that it is set.
+	if ( ! isset( $_POST['wti_like_post_expiration_date'] ) ) {
+		return;
+	}
+
+	// Sanitize user input.
+	$my_data = sanitize_text_field( $_POST['wti_like_post_expiration_date'] );
+
+    $my_data = date_create_from_format('d/m/Y', $my_data)->format('Y-m-d');
+
+	// Update the meta field in the database.
+	update_post_meta( $post_id, '_wti_like_post_expiration_date', $my_data );
+}
+add_action( 'save_post', 'WtiVoteExpirationDateSave' );
+
+function WtiVoteRegisterAdminScripts() {
+    wp_enqueue_script( 'jquery-ui-datepicker' );
+    wp_enqueue_style( 'jquery-ui-datepicker', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/smoothness/jquery-ui.css' );
+    wp_enqueue_script( 'wti-like-post-admin', plugins_url( 'wti-like-post/js/admin.js' ) );
+}
+
+/**
+ * Checks if the voting is open for the post
+ *
+ * @param $post_id integer
+ * @param $enforce_limit bool
+ *
+ * @return bool
+ */
+function WtiIsVoteOpen($post_id, $enforce_limit) {
+    $is_vote_open = true;
+    if ($enforce_limit) {
+        $post_vote_expire_date = get_post_meta($post_id, '_wti_like_post_expiration_date', true);
+        if (empty($post_vote_expire_date)) {
+            $is_vote_open = true;
+        } else {
+            $post_vote_expire_date = date_create_from_format('Y-m-d', $post_vote_expire_date);
+            $post_vote_expire_date->setTime(23,59,59);
+            $today = date_create();
+            if($today <= $post_vote_expire_date) {
+                $is_vote_open = true;
+            } else {
+                $is_vote_open = false;
+            }
+        }
+    }
+
+    return $is_vote_open;
+}
+
+add_action( 'admin_enqueue_scripts', 'WtiVoteRegisterAdminScripts' );
 
 // Load the widgets
 require_once('wti_like_post_widgets.php');
