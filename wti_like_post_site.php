@@ -12,11 +12,11 @@ function GetWtiLikePost($arg = null) {
      // Get the posts ids where we do not need to show like functionality
      $allowed_posts = explode(",", get_option('wti_like_post_allowed_posts'));
      $excluded_posts = explode(",", get_option('wti_like_post_excluded_posts'));
-     $excluded_categories = get_option('wti_like_post_excluded_categories');
+     $allowed_categories = get_option('wti_like_post_allowed_categories');
      $excluded_sections = get_option('wti_like_post_excluded_sections');
      
-     if (empty($excluded_categories)) {
-          $excluded_categories = array();
+     if (empty($allowed_categories)) {
+         $allowed_categories = array();
      }
      
      if (empty($excluded_sections)) {
@@ -34,7 +34,7 @@ function GetWtiLikePost($arg = null) {
      
      // Checking for excluded categories
      foreach($category as $cat) {
-          if (in_array($cat->cat_ID, $excluded_categories) && !in_array($post_id, $allowed_posts)) {
+          if (!in_array($cat->cat_ID, $allowed_categories) && !in_array($post_id, $allowed_posts)) {
                $excluded = true;
           }
      }

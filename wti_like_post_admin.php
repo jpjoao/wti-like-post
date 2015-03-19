@@ -20,14 +20,14 @@ function WtiLikePostAdminContent() {
      global $wpdb, $wti_like_post_db_version;
      
 	$excluded_sections = get_option('wti_like_post_excluded_sections');
-	$excluded_categories = get_option('wti_like_post_excluded_categories');
+	$allowed_categories = get_option('wti_like_post_allowed_categories');
 	
 	if (empty($excluded_sections)) {
 		$excluded_sections = array();
 	}
 	
-	if (empty($excluded_categories)) {
-		$excluded_categories = array();
+	if (empty($allowed_categories)) {
+        $allowed_categories = array();
 	}
 ?>
 <div class="wrap">
@@ -176,14 +176,14 @@ function WtiLikePostAdminContent() {
 									</td>
 								</tr>
 								<tr valign="top">
-									<th scope="row"><label><?php _e('Exclude selected categories', 'wti-like-post'); ?></label></th>
+									<th scope="row"><label><?php _e('Include selected categories', 'wti-like-post'); ?></label></th>
 									<td>	
-										<select name='wti_like_post_excluded_categories[]' id='wti_like_post_excluded_categories' multiple="multiple" size="4" style="height:auto !important;">
+										<select name='wti_like_post_allowed_categories[]' id='wti_like_post_allowed_categories' multiple="multiple" size="4" style="height:auto !important;">
 											<?php 
 											$categories=  get_categories();
 											
 											foreach ($categories as $category) {
-												$selected = (in_array($category->cat_ID, $excluded_categories)) ? 'selected="selected"' : '';
+												$selected = (in_array($category->cat_ID, $allowed_categories)) ? 'selected="selected"' : '';
 												$option  = '<option value="' . $category->cat_ID . '" ' . $selected . '>';
 												$option .= $category->cat_name;
 												$option .= ' (' . $category->category_count . ')';
@@ -192,7 +192,7 @@ function WtiLikePostAdminContent() {
 											}
 											?>
 										</select>
-										<span class="description"><?php _e('Select categories where you do not want to show the like option. It has higher priority than "Exclude post/page IDs" setting.', 'wti-like-post');?></span>
+										<span class="description"><?php _e('Select categories where you want to show the like option. It has higher priority than \"Allowed post/page IDs\" setting.', 'wti-like-post');?></span>
 									</td>
 								</tr>
 								<tr valign="top">
@@ -289,7 +289,7 @@ function WtiLikePostAdminContent() {
 				document.getElementById('show_pages_no').checked = true;
 				document.getElementById('wti_like_post_allowed_posts').value = '';
 				document.getElementById('wti_like_post_excluded_posts').value = '';
-				document.getElementById('wti_like_post_excluded_categories').selectedIndex = -1;
+				document.getElementById('wti_like_post_allowed_categories').selectedIndex = -1;
 				document.getElementById('wti_like_post_excluded_home').value = '';
 				document.getElementById('wti_like_post_excluded_archive').value = '';
 				document.getElementById('show_widget_yes').checked = true;

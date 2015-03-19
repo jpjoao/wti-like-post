@@ -127,7 +127,7 @@ function SetOptionsWtiLikePost() {
      add_option('wti_like_post_voted_message', __('You have already voted.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_allowed_posts', '', '', 'yes');
      add_option('wti_like_post_excluded_posts', '', '', 'yes');
-     add_option('wti_like_post_excluded_categories', '', '', 'yes');
+     add_option('wti_like_post_allowed_categories', '', '', 'yes');
      add_option('wti_like_post_excluded_sections', '', '', 'yes');
      add_option('wti_like_post_show_on_pages', '0', '', 'yes');
      add_option('wti_like_post_show_on_widget', '1', '', 'yes');
@@ -164,7 +164,7 @@ function UnsetOptionsWtiLikePost() {
 		delete_option('wti_like_post_db_version');
 		delete_option('wti_like_post_allowed_posts');
 		delete_option('wti_like_post_excluded_posts');
-		delete_option('wti_like_post_excluded_categories');
+		delete_option('wti_like_post_allowed_categories');
 		delete_option('wti_like_post_excluded_sections');
 		delete_option('wti_like_post_show_on_pages');
 		delete_option('wti_like_post_show_on_widget');
@@ -189,7 +189,7 @@ function WtiLikePostAdminRegisterSettings() {
      register_setting('wti_like_post_options', 'wti_like_post_voted_message');
      register_setting('wti_like_post_options', 'wti_like_post_allowed_posts');
      register_setting('wti_like_post_options', 'wti_like_post_excluded_posts');
-     register_setting('wti_like_post_options', 'wti_like_post_excluded_categories');
+     register_setting('wti_like_post_options', 'wti_like_post_allowed_categories');
      register_setting('wti_like_post_options', 'wti_like_post_excluded_sections');
      register_setting('wti_like_post_options', 'wti_like_post_show_on_pages');
      register_setting('wti_like_post_options', 'wti_like_post_show_on_widget');

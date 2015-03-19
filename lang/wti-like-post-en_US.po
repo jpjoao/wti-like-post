@@ -270,12 +270,12 @@ msgid "Check the sections where you do not want to avail the like/dislike option
 msgstr "Check the sections where you do not want to avail the like/dislike options. This has higher priority than the \"Exclude post/page IDs\" setting."
 
 #: ../wti_like_post_admin.php:179
-msgid "Exclude selected categories"
-msgstr "Exclude selected categories"
+msgid "Include selected categories"
+msgstr "Include selected categories"
 
 #: ../wti_like_post_admin.php:195
-msgid "Select categories where you do not want to show the like option. It has higher priority than \"Exclude post/page IDs\" setting."
-msgstr "Select categories where you do not want to show the like option. It has higher priority than \"Exclude post/page IDs\" setting."
+msgid "Select categories where you want to show the like option. It has higher priority than \"Allowed post/page IDs\" setting."
+msgstr "Select categories where you do to show the like option. It has higher priority than \"Allowed post/page IDs\" setting."
 
 #: ../wti_like_post_admin.php:199
 msgid "Allow post IDs"
