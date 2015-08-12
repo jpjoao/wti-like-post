@@ -591,23 +591,26 @@ add_action('wp_ajax_nopriv_wti_like_post_process_vote', 'WtiLikePostProcessVote'
 add_action( 'show_user_profile', 'PHPSP_has_karma_field' );
 add_action( 'edit_user_profile', 'PHPSP_has_karma_field' );
 function PHPSP_has_karma_field( $user ) {
-?>
-  <h3><?php _e("RFC Vote", "blank"); ?></h3>
-  <table class="form-table">
-    <tr>
-      <th><label for="phone"><?php _e("Has Karma"); ?></label></th>
-      <td>
-        <input type="checkbox" name="has_karma" id="has_karma" value="1" <?php checked(get_the_author_meta( 'has_karma', $user->ID ), 1); ?> /><br />
-    </td>
-    </tr>
-  </table>
-<?php
+     if ( current_user_can( 'edit_users' ) ) {
+          ?>
+          <h3><?php _e( "RFC Vote", "blank" ); ?></h3>
+          <table class="form-table">
+               <tr>
+                    <th><label for="phone"><?php _e( "Has Karma" ); ?></label></th>
+                    <td>
+                         <input type="checkbox" name="has_karma" id="has_karma"
+                                value="1" <?php checked( get_the_author_meta( 'has_karma', $user->ID ), 1 ); ?> /><br/>
+                    </td>
+               </tr>
+          </table>
+          <?php
+     }
 }
 
 add_action( 'personal_options_update', 'PHPSP_save_has_karma_field' );
 add_action( 'edit_user_profile_update', 'PHPSP_save_has_karma_field' );
 function PHPSP_save_has_karma_field( $user_id ) {
-  if ( current_user_can( 'edit_user', $user_id ) ) {
+  if ( current_user_can( 'edit_users' ) ) {
     update_user_meta( $user_id, 'has_karma', $_POST['has_karma'] );
   }
   return true;
