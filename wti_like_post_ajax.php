@@ -7,7 +7,7 @@ function WtiLikePostProcessVote() {
 	$task = $_REQUEST['task'];
     $current_user = wp_get_current_user();
     $user_id = (int)$current_user->ID;
-	
+
 	// Check for valid access
 	if ( !wp_verify_nonce( $_REQUEST['nonce'], 'wti_like_post_vote_nonce' ) ) {
 		$error = 1;
@@ -39,10 +39,15 @@ function WtiLikePostProcessVote() {
 				// User can vote as many times as he want
 				$can_vote = true;
 			} else {
-				if ( !$has_already_voted ) {
-					// Never voted befor so can vote
+				$has_karma = get_the_author_meta( 'has_karma', $user_id );
+				if ( ! $has_already_voted && $has_karma ) {
+					// Never voted before so can vote
 					$can_vote = true;
-				} else {
+				} elseif (! $has_already_voted && ! $has_karma ) {
+					$can_vote = false;
+					$msg = get_option( 'wti_like_post_no_karma_message' );
+				}
+				else {
 					// Get the last date when the user had voted
 					$last_voted_date = GetWtiLastVotedDate( $post_id, $user_id );
 					

@@ -1,11 +1,13 @@
 <?php
 /*
-Plugin Name: WTI Like Post
-Plugin URI: http://www.webtechideas.com/wti-like-post-plugin/
-Description: WTI Like Post is a plugin for adding like (thumbs up) and unlike (thumbs down) functionality for posts/pages. On admin end alongwith handful of configuration settings, it will show a list of most liked posts/pages. If you have already liked a post/page and now you dislike it, then the old voting will be cancelled and vice-versa. You can reset the settings to default and the like/unlike counts for all/selected posts/pages as well. It comes with two widgets, one to display the most liked posts/pages for a given time range and another to show recently liked posts. Check out the <strong><a href="http://www.webtechideas.com/product/wti-like-post-pro/" target="_blank">powerful PRO version</a></strong> with lots of useful features.
-Version: 1.4.2
-Author: webtechideas
-Author URI: http://www.webtechideas.com/
+Plugin Name: WTI Like Post (forked for PHPSP)
+Plugin URI: https://github.com/jpjoao/wti-like-post
+Description: It is a fork for PHP of WTI Like Post to enable a PHP RFC like vote option
+Version: 1.4.3
+Author: Joao Paulo
+Author URI: https://github.com/jpjoao/
+Original Author: webtechideas
+Original Author URI: http://www.webtechideas.com/
 License: GPLv2 or later
 
 Copyright 2014  Webtechideas  (email : support@webtechideas.com)
@@ -33,7 +35,6 @@ global $wti_like_post_db_version;
 $wti_like_post_db_version = "1.4.2";
 
 add_action('init', 'WtiLoadPluginTextdomain');
-add_action('admin_init', 'WtiLikePostPluginUpdateMessage');
 
 /**
  * Load the language files for this plugin
@@ -43,28 +44,6 @@ add_action('admin_init', 'WtiLikePostPluginUpdateMessage');
 function WtiLoadPluginTextdomain() {
      load_plugin_textdomain('wti-like-post', false, 'wti-like-post/lang');
 }
-
-/**
- * Hook the auto update message
- * @param void
- * @return void
- */
-function WtiLikePostPluginUpdateMessage() {
-    add_action( 'in_plugin_update_message-' . basename( dirname( __FILE__ ) ) . '/wti_like_post.php', 'WtiLikePostUpdateNotice' );
-}
-
-/**
- * Show additional message for plugin update
- * @param void
- * @return void
- */
-function WtiLikePostUpdateNotice() {
-    $info_title = __( 'In case there was any customization done with this plugin, then please take a backup first.', 'wti-like-post' );
-    $info_text =  __( 'Check out the powerful PRO version with lots of useful features.', 'wti-like-post' );
-    echo '<div style="border-top:1px solid #CCC; margin-top:3px; padding-top:3px; font-weight:normal;"><strong style="color:#CC0000">' . strip_tags( $info_title ) . '</strong> <strong><a href="http://www.webtechideas.com/product/wti-like-post-pro/" target="_blank">' . strip_tags( $info_text, '<br><a><strong><em><span>' ) . '</a></strong></div>';
-}
-
-add_filter('plugin_action_links', 'WtiLikePostPluginLinks', 10, 2);
 
 /**
  * Create the settings link for this plugin
@@ -124,6 +103,7 @@ function SetOptionsWtiLikePost() {
      add_option('wti_like_post_show_votes', '1', '', 'yes');
      add_option('wti_like_post_enforce_date_limit', '1', '', 'yes');
      add_option('wti_like_post_login_required', '0', '', 'yes');
+     add_option('wti_like_post_no_karma_message', __('Not enough Karma to vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_login_message', __('Please login to vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_thank_message', __('Thanks for your vote.', 'wti-like-post'), '', 'yes');
      add_option('wti_like_post_voted_message', __('You have already voted.', 'wti-like-post'), '', 'yes');
@@ -161,7 +141,8 @@ function UnsetOptionsWtiLikePost() {
 		delete_option('wti_like_post_position');
         delete_option('wti_like_post_show_votes');
         delete_option('wti_like_post_enforce_date_limit');
-		delete_option('wti_like_post_login_required');
+         delete_option('wti_like_post_login_required');
+         delete_option('wti_like_post_no_karma_message');
 		delete_option('wti_like_post_login_message');
 		delete_option('wti_like_post_thank_message');
 		delete_option('wti_like_post_voted_message');
@@ -190,6 +171,7 @@ function WtiLikePostAdminRegisterSettings() {
      register_setting('wti_like_post_options', 'wti_like_post_show_votes');
      register_setting('wti_like_post_options', 'wti_like_post_enforce_date_limit');
      register_setting('wti_like_post_options', 'wti_like_post_login_required');
+     register_setting('wti_like_post_options', 'wti_like_post_no_karma_message');
      register_setting('wti_like_post_options', 'wti_like_post_login_message');
      register_setting('wti_like_post_options', 'wti_like_post_thank_message');
      register_setting('wti_like_post_options', 'wti_like_post_voted_message');
@@ -604,3 +586,29 @@ require_once('wti_like_post_ajax.php');
 // Associate the respective functions with the ajax call
 add_action('wp_ajax_wti_like_post_process_vote', 'WtiLikePostProcessVote');
 add_action('wp_ajax_nopriv_wti_like_post_process_vote', 'WtiLikePostProcessVote');
+
+//Add extra "Has Karma to vote in RFCs" option on user account
+add_action( 'show_user_profile', 'PHPSP_has_karma_field' );
+add_action( 'edit_user_profile', 'PHPSP_has_karma_field' );
+function PHPSP_has_karma_field( $user ) {
+?>
+  <h3><?php _e("RFC Vote", "blank"); ?></h3>
+  <table class="form-table">
+    <tr>
+      <th><label for="phone"><?php _e("Has Karma"); ?></label></th>
+      <td>
+        <input type="checkbox" name="has_karma" id="has_karma" value="1" <?php checked(get_the_author_meta( 'has_karma', $user->ID ), 1); ?> /><br />
+    </td>
+    </tr>
+  </table>
+<?php
+}
+
+add_action( 'personal_options_update', 'PHPSP_save_has_karma_field' );
+add_action( 'edit_user_profile_update', 'PHPSP_save_has_karma_field' );
+function PHPSP_save_has_karma_field( $user_id ) {
+  if ( current_user_can( 'edit_user', $user_id ) ) {
+    update_user_meta( $user_id, 'has_karma', $_POST['has_karma'] );
+  }
+  return true;
+}
