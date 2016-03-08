@@ -27,66 +27,69 @@ function WtiLikePostProcessVote() {
 			$error = 1;
 			$msg = get_option( 'wti_like_post_login_message' );
 		} else {
-			$has_already_voted = HasWtiAlreadyVoted( $post_id, $user_id );
-			$voting_period = get_option( 'wti_like_post_voting_period' );
-			$datetime_now = date( 'Y-m-d H:i:s' );
-			
-			if ( "once" == $voting_period && $has_already_voted ) {
-				// User can vote only once and has already voted.
-				$error = 1;
-				$msg = get_option( 'wti_like_post_voted_message' );
-			} elseif ( '0' == $voting_period ) {
-				// User can vote as many times as he want
-				$can_vote = true;
-			} else {
-				$has_karma = get_the_author_meta( 'has_karma', $user_id );
-				if ( ! $has_already_voted && $has_karma ) {
-					// Never voted before so can vote
-					$can_vote = true;
-				} elseif (! $has_already_voted && ! $has_karma ) {
-					$can_vote = false;
-					$msg = get_option( 'wti_like_post_no_karma_message' );
-				}
-				else {
-					// Get the last date when the user had voted
-					$last_voted_date = GetWtiLastVotedDate( $post_id, $user_id );
-					
-					// Get the bext voted date when user can vote
-					$next_vote_date = GetWtiNextVoteDate( $last_voted_date, $voting_period );
-					
-					if ( $next_vote_date > $datetime_now ) {
-						$revote_duration = ( strtotime( $next_vote_date ) - strtotime( $datetime_now ) ) / ( 3600 * 24 );
-						
-						$can_vote = false;
-						$error = 1;
-						$msg = __( 'You can vote after', 'wti-like-post' ) . ' ' . ceil( $revote_duration ) . ' ' . __( 'day(s)', 'wti-like-post' );
-					} else {
-						$can_vote = true;
-					}
-				}
-			}
-		}
-		
+            $has_karma = get_the_author_meta('has_karma', $user_id);
+            if (!$has_karma) {
+                $can_vote = false;
+            } else {
+                $has_already_voted = HasWtiAlreadyVoted($post_id, $user_id);
+                $voting_period = get_option('wti_like_post_voting_period');
+                $datetime_now = date('Y-m-d H:i:s');
+
+                if ("once" == $voting_period && $has_already_voted) {
+                    // User can vote only once and has already voted.
+                    $error = 1;
+                    $msg = get_option('wti_like_post_voted_message');
+                } elseif ('0' == $voting_period) {
+                    // User can vote as many times as he want
+                    $can_vote = true;
+                } else {
+                    if (!$has_already_voted) {
+                        // Never voted before so can vote
+                        $can_vote = true;
+                    } elseif (!$has_already_voted) {
+                        $can_vote = false;
+                        $msg = get_option('wti_like_post_no_karma_message');
+                    } else {
+                        // Get the last date when the user had voted
+                        $last_voted_date = GetWtiLastVotedDate($post_id, $user_id);
+
+                        // Get the bext voted date when user can vote
+                        $next_vote_date = GetWtiNextVoteDate($last_voted_date, $voting_period);
+
+                        if ($next_vote_date > $datetime_now) {
+                            $revote_duration = (strtotime($next_vote_date) - strtotime($datetime_now)) / (3600 * 24);
+
+                            $can_vote = false;
+                            $error = 1;
+                            $msg = __('You can vote after', 'wti-like-post') . ' ' . ceil($revote_duration) . ' ' . __('day(s)', 'wti-like-post');
+                        } else {
+                            $can_vote = true;
+                        }
+                    }
+                }
+            }
+        }
+
 		if ( $can_vote ) {
 
 			if ( $task == "like" ) {
 				if ( $has_already_voted ) {
 					$query = "UPDATE {$wpdb->prefix}wti_like_post SET ";
-					$query .= "value = value + 1, ";
+					$query .= "value = '1', ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "' ";
 					$query .= "WHERE post_id = '" . $post_id . "' AND ";
                     $query .= "user_id = '$user_id'";
-				} else {			
+				} else {
 					$query = "INSERT INTO {$wpdb->prefix}wti_like_post SET ";
 					$query .= "post_id = '" . $post_id . "', ";
-					$query .= "value = '1', ";
+                    $query .= "value = '1', ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "', ";
 					$query .= "user_id = '$user_id'";
 				}
 			} else {
 				if ( $has_already_voted ) {
 					$query = "UPDATE {$wpdb->prefix}wti_like_post SET ";
-					$query .= "value = value - 1, ";
+					$query .= "value = '-1', ";
 					$query .= "date_time = '" . date( 'Y-m-d H:i:s' ) . "' ";
 					$query .= "WHERE post_id = '" . $post_id . "' AND ";
                     $query .= "user_id = '$user_id'";

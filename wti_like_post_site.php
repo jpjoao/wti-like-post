@@ -129,7 +129,7 @@ function GetWtiLikePost($arg = null) {
               $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
                       $title_text_like, 'wti-like-post'
                   ) . "' />";
-              $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
+//              $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
               $wti_like_post .= "</a></div>";
 
               if ($show_dislike)
@@ -142,7 +142,7 @@ function GetWtiLikePost($arg = null) {
                   $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
                           $title_text_unlike, 'wti-like-post'
                       ) . "' />";
-                  $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
+//                  $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
                   $wti_like_post .= "</a></div> ";
               }
 
