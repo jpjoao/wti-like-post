@@ -66,10 +66,13 @@ function GetWtiLikePost($arg = null) {
           $nonce = wp_create_nonce("wti_like_post_vote_nonce");
           $ajax_like_link = admin_url('admin-ajax.php?action=wti_like_post_process_vote&task=like&post_id=' . $post_id . '&nonce=' . $nonce);
           $ajax_unlike_link = admin_url('admin-ajax.php?action=wti_like_post_process_vote&task=unlike&post_id=' . $post_id . '&nonce=' . $nonce);
-          
+
           $like_count = GetWtiLikeCount($post_id);
           $unlike_count = GetWtiUnlikeCount($post_id);
           $msg = GetWtiVotedMessage($post_id);
+          if (empty($msg)) {
+              $msg = GetWtiNoKarmaMessage();
+          }
           $alignment = ("left" == get_option('wti_like_post_alignment')) ? 'align-left' : 'align-right';
           $show_dislike = get_option('wti_like_post_show_dislike');
           $style = (get_option('wti_like_post_voting_style') == "") ? 'style1' : get_option('wti_like_post_voting_style');
@@ -126,7 +129,7 @@ function GetWtiLikePost($arg = null) {
               $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
                       $title_text_like, 'wti-like-post'
                   ) . "' />";
-              $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
+//              $wti_like_post .= "<span class='lc-" . $post_id . " lc'>" . $like_count . "</span>";
               $wti_like_post .= "</a></div>";
 
               if ($show_dislike)
@@ -139,7 +142,7 @@ function GetWtiLikePost($arg = null) {
                   $wti_like_post .= "<img src='" . plugins_url('images/pixel.gif', __FILE__) . "' title='" . __(
                           $title_text_unlike, 'wti-like-post'
                       ) . "' />";
-                  $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
+//                  $wti_like_post .= "<span class='unlc-" . $post_id . " unlc'>" . $unlike_count . "</span>";
                   $wti_like_post .= "</a></div> ";
               }
 
@@ -218,6 +221,24 @@ function GetWtiVotedMessage($post_id, $user_id = null) {
      }
      
      return $wti_voted_message;
+}
+
+/**
+ * Get no Karma message
+ * @param $user_id integer
+ * @return string
+ */
+function GetWtiNoKarmaMessage($user_id = null) {
+    $wti_no_karma_message = '';
+    if (null == $user_id) {
+        $user_id = WtiGetUserId();
+    }
+    if (get_the_author_meta( 'has_karma', $user_id ) != 1)
+    {
+        $wti_no_karma_message = get_option('wti_like_post_no_karma_message');
+    }
+
+    return $wti_no_karma_message;
 }
 
 add_shortcode('most_liked_posts', 'WtiMostLikedPostsShortcode');

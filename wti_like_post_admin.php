@@ -176,6 +176,13 @@ function WtiLikePostAdminContent() {
 									</td>
 								</tr>
 								<tr valign="top">
+									<th scope="row"><label><?php _e('Not enough Karma to vote', 'wti-like-post'); ?></label></th>
+									<td>
+										<input type="text" size="40" name="wti_like_post_no_karma_message" id="wti_like_post_no_karma_message" value="<?php echo get_option('wti_like_post_no_karma_message'); ?>" />
+										<span class="description"><?php _e('Message to show if user has not enough karma to vote.', 'wti-like-post');?></span>
+									</td>
+								</tr>
+								<tr valign="top">
 									<th scope="row"><label><?php _e('Show on pages', 'wti-like-post'); ?></label></th>
 									<td>	
 										<input type="radio" name="wti_like_post_show_on_pages" id="show_pages_yes" value="1" <?php if (('1' == get_option('wti_like_post_show_on_pages'))) { echo 'checked'; } ?> /> <?php echo __('Yes', 'wti-like-post'); ?>
@@ -305,6 +312,7 @@ function WtiLikePostAdminContent() {
 				document.getElementById('wti_like_post_login_message').value = 'Please login to vote.';
 				document.getElementById('wti_like_post_thank_message').value = 'Thanks for your vote.';
 				document.getElementById('wti_like_post_voted_message').value = 'You have already voted.';
+				document.getElementById('wti_like_post_no_karma_message').value = 'You don\'t have enough karma to vote.';
 				document.getElementById('show_pages_yes').checked = false;
 				document.getElementById('show_pages_no').checked = true;
 				document.getElementById('wti_like_post_allowed_posts').value = '';
@@ -576,26 +584,3 @@ function WtiLikePostSaveData($post_id) {
 		}
 	}
 }
-
-/**
- * Additional links on plugins page
- * 
- * @param array
- * @param string
- * @return array
- */
-function WtiLikePostSetPluginMeta( $links, $file ) {
-	if ( strpos( $file, 'wti-like-post/wti_like_post.php' ) !== false ) {
-		$new_links = array(
-						'<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=support@webtechideas.com&item_name=WTI%20Like%20Post&return=http://www.webtechideas.com/thanks/" target="_blank">' . __( 'Donate', 'wti-like-post' ) . '</a>',
-						'<a href="http://www.webtechideas.com/product/wti-like-post-pro/" target="_blank">' . __( 'PRO Version', 'wti-like-post' ) . '</a>',
-						'<a href="http://support.webtechideas.com/forums/forum/wti-like-post-pro/" target="_blank">' . __( 'PRO Support Forum', 'wti-like-post' ) . '</a>',
-					);
-		
-		$links = array_merge( $links, $new_links );
-	}
-	
-	return $links;
-}
-
-add_filter( 'plugin_row_meta', 'WtiLikePostSetPluginMeta', 10, 2 );
