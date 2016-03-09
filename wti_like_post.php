@@ -545,6 +545,113 @@ function WtiVoteRegisterAdminScripts() {
     wp_enqueue_style( 'jquery-ui-datepicker', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/smoothness/jquery-ui.css' );
     wp_enqueue_script( 'wti-like-post-admin', plugins_url( 'wti-like-post/js/admin.js' ) );
 }
+/**
+ * Adds a status meta to posts
+ */
+function WtiAddStatus() {
+
+    add_meta_box(
+        'wti_vote_status',
+        __( 'RFC Status', 'wti-like-post' ),
+        'WtiStatusCallback',
+        'post'
+    );
+}
+add_action( 'add_meta_boxes', 'WtiAddStatus' );
+
+/**
+ * Prints the expiration form.
+ *
+ * @param WP_Post $post The object for the current post/page.
+ */
+function WtiStatusCallback( $post ) {
+
+    $possible_status = array(
+        'Pendente',
+        'Em Votação',
+        'Aprovada',
+        'Reprovada',
+        "Substituída",
+    );
+
+    // Add an nonce field so we can check for it later.
+    wp_nonce_field( 'wti_like_post_status', 'wti_like_post_status_nonce' );
+
+    /*
+     * Use get_post_meta() to retrieve an existing value
+     * from the database and use the value for the form.
+     */
+    $value = get_post_meta( $post->ID, 'wti_like_post_status', true );
+
+    echo '<label for="wti_like_post_status">';
+    _e( 'RFC Status', 'wti-like-post' );
+    echo '</label> ';
+    echo '<select id="wti_like_post_status" name="wti_like_post_status">';
+    foreach ($possible_status as $status) {
+        $selected = ($value == $status)?' selected="selected" ':'';
+        echo '<option ' . $selected . ' > ' . $status . '</option>';
+    }
+    echo '</select>';
+}
+
+/**
+ * When the post is saved, saves our custom data.
+ *
+ * @param int $post_id The ID of the post being saved.
+ */
+function WtiStatusSave( $post_id ) {
+
+    /*
+     * We need to verify this came from our screen and with proper authorization,
+     * because the save_post action can be triggered at other times.
+     */
+
+    // Check if our nonce is set.
+    if ( ! isset( $_POST['wti_like_post_status_nonce'] ) ) {
+        return;
+    }
+
+    // Verify that the nonce is valid.
+    if ( ! wp_verify_nonce( $_POST['wti_like_post_status_nonce'], 'wti_like_post_status' ) ) {
+        return;
+    }
+
+    // If this is an autosave, our form has not been submitted, so we don't want to do anything.
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    // Check the user's permissions.
+    if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
+
+        if ( ! current_user_can( 'edit_page', $post_id ) ) {
+            return;
+        }
+
+    } else {
+
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            return;
+        }
+    }
+
+    /* OK, it's safe for us to save the data now. */
+
+    // Make sure that it is set.
+    if ( ! isset( $_POST['wti_like_post_status'] ) ) {
+        return;
+    }
+
+    // Sanitize user input.
+    $my_data = sanitize_text_field( $_POST['wti_like_post_status'] );
+
+    if (empty($my_data)) {
+        $my_data = 'Pendente';
+    }
+    // Update the meta field in the database.
+    update_post_meta( $post_id, 'wti_like_post_status', $my_data );
+}
+add_action( 'save_post', 'WtiStatusSave' );
 
 /**
  * Checks if the voting is open for the post
