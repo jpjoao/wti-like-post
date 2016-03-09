@@ -6,8 +6,14 @@
  */
 function GetWtiLikePost($arg = null) {
 
-    //check is is post page and if user should see the vote
-    if (!is_single() || !current_user_can( 'edit_users' ) ) {
+    //check if is post page
+    if (!is_single()) {
+        return;
+    }
+
+    // check if user should see the vote / has karma to vote
+    $user_id = WtiGetUserId();
+    if (!current_user_can( 'edit_users' ) || get_the_author_meta( 'has_karma', $user_id ) != 1) {
         return;
     }
 
