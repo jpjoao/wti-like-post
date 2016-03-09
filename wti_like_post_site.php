@@ -6,8 +6,8 @@
  */
 function GetWtiLikePost($arg = null) {
 
-    //check is is post page
-    if (!is_single()) {
+    //check is is post page and if user should see the vote
+    if (!is_single() || !current_user_can( 'edit_users' ) ) {
         return;
     }
 
