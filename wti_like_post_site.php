@@ -11,10 +11,12 @@ function GetWtiLikePost($arg = null) {
         return;
     }
 
+    $can_vote = true;
+
     // check if user should see the vote / has karma to vote
     $user_id = WtiGetUserId();
     if (!current_user_can( 'edit_users' ) || get_the_author_meta( 'has_karma', $user_id ) != 1) {
-        return;
+        $can_vote = false;
     }
 
      global $wpdb;
@@ -124,7 +126,7 @@ function GetWtiLikePost($arg = null) {
              $wti_like_post .= $wti_votes;
           }
 
-          if (WtiIsVoteOpen($post_id, get_option('wti_like_post_enforce_date_limit')))
+          if ($can_vote && WtiIsVoteOpen($post_id, get_option('wti_like_post_enforce_date_limit')))
           {
               $wti_like_post .= "<div class='watch-action'>";
               $wti_like_post .= "<div class='watch-position " . $alignment . "'>";
