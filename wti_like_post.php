@@ -3,7 +3,7 @@
 Plugin Name: WTI Like Post (forked for PHPSP)
 Plugin URI: https://github.com/jpjoao/wti-like-post
 Description: It is a fork for PHP of WTI Like Post to enable a PHP RFC like vote option
-Version: 0.0.3.1
+Version: 0.0.4
 Author: Joao Paulo
 Author URI: https://github.com/jpjoao/
 Original Author: webtechideas
