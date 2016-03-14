@@ -15,7 +15,7 @@ function GetWtiLikePost($arg = null) {
 
     // check if user should see the vote / has karma to vote
     $user_id = WtiGetUserId();
-    if (!current_user_can( 'edit_users' ) || get_the_author_meta( 'has_karma', $user_id ) != 1) {
+    if (!current_user_can( 'publish_posts' ) || get_the_author_meta( 'has_karma', $user_id ) != 1) {
         $can_vote = false;
     }
 

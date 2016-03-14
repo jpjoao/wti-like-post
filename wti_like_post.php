@@ -698,7 +698,7 @@ add_action('wp_ajax_nopriv_wti_like_post_process_vote', 'WtiLikePostProcessVote'
 add_action( 'show_user_profile', 'PHPSP_has_karma_field' );
 add_action( 'edit_user_profile', 'PHPSP_has_karma_field' );
 function PHPSP_has_karma_field( $user ) {
-     if ( current_user_can( 'edit_users' ) ) {
+     if ( current_user_can( 'publish_posts' ) ) {
           ?>
           <h3><?php _e( "RFC Vote", "blank" ); ?></h3>
           <table class="form-table">
@@ -717,7 +717,7 @@ function PHPSP_has_karma_field( $user ) {
 add_action( 'personal_options_update', 'PHPSP_save_has_karma_field' );
 add_action( 'edit_user_profile_update', 'PHPSP_save_has_karma_field' );
 function PHPSP_save_has_karma_field( $user_id ) {
-  if ( current_user_can( 'edit_users' ) ) {
+  if ( current_user_can( 'publish_posts' ) ) {
     update_user_meta( $user_id, 'has_karma', $_POST['has_karma'] );
   }
   return true;
